@@ -37,6 +37,56 @@ class App {
         authService.setupAutoLogout();
         alertService.start();
         this.registerServiceWorker();
+        this.checkMobileFullScreen();
+    }
+
+    checkMobileFullScreen() {
+        // Only trigger for mobile devices
+        const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        // Create Fullscreen Blocker Overlay
+        const blocker = document.createElement('div');
+        blocker.id = 'fs-blocker';
+        blocker.className = 'fixed inset-0 z-[9999] bg-slate-900 flex flex-col items-center justify-center p-8 text-center';
+        blocker.innerHTML = `
+            <div class="mb-8">
+                <img src="assets/icons/icon-192x192.png" class="w-24 h-24 mx-auto mb-6 rounded-3xl shadow-2xl animate-bounce" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                <h2 class="text-3xl font-black text-white mb-2 tracking-tight uppercase">The Drive Quality</h2>
+                <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Premium Management Interface</p>
+            </div>
+            
+            <button id="start-app-fs" class="bg-indigo-600 text-white w-full max-w-xs py-6 rounded-2xl font-black text-lg shadow-2xl shadow-indigo-500/20 active:scale-95 transition-all">
+                دخول النظام (Full Screen)
+            </button>
+            <p class="text-slate-500 text-[10px] mt-8 font-bold uppercase tracking-[0.3em]">Authorized Personnel Only</p>
+        `;
+
+        document.body.appendChild(blocker);
+
+        document.getElementById('start-app-fs').addEventListener('click', async () => {
+            try {
+                if (document.documentElement.requestFullscreen) {
+                    await document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    await document.documentElement.webkitRequestFullscreen();
+                }
+                $('#fs-blocker').fadeOut(500, function() { $(this).remove(); });
+            } catch (err) {
+                console.warn('Fullscreen denied', err);
+                $('#fs-blocker').fadeOut(); // Fallback
+            }
+        });
+    }
+
+    canAccess(module, action = 'v') {
+        const user = stateManager.getState().currentUser;
+        if (!user) return false;
+        if (user.role === 'Admin') return true;
+        
+        const perms = user.permissions || [];
+        // Support both old ['dashboard'] and new ['dashboard_v', 'dashboard_e']
+        return perms.includes(`${module}_${action}`) || perms.includes(module);
     }
 
     async registerServiceWorker() {
@@ -941,6 +991,110 @@ class App {
                 ui.error('خطأ', 'فشل تحديث المهمة');
             }
         });
+    }
+
+    async startDashboard() {
+        $('#login-screen').addClass('opacity-0 h-0 w-0 overflow-hidden');
+        $('#app-wrapper').removeClass('hidden').addClass('flex');
+        
+        const user = stateManager.getState().currentUser;
+        if (user.role === 'Admin') {
+            $('#app-wrapper').addClass('is-admin');
+        } else {
+            $('#app-wrapper').removeClass('is-admin');
+        }
+
+        this.renderSidebar();
+        
+        ui.loading('جاري تحميل بيانات النظام السحابية...');
+        try {
+            const data = await apiService.fetchData();
+            stateManager.setCurrentData(data);
+            ui.success('تم التحديث', 'البيانات جاهزة الآن');
+        } catch (error) {
+            ui.error('خطأ في المزامنة', 'فشل تحميل البيانات، تأكد من اتصال الإنترنت');
+        }
+    }
+
+    renderSidebar() {
+        const navItems = [
+            { id: 'dashboard', name: 'الرئيسية', icon: 'fa-chart-pie' },
+            { id: 'procedures', name: 'الفتح والغلق', icon: 'fa-toggle-on' },
+            { id: 'audit', name: 'التفتيش', icon: 'fa-clipboard-check' },
+            { id: 'stock', name: 'المخزون', icon: 'fa-box-open' },
+            { id: 'receiving', name: 'الاستلام', icon: 'fa-truck-loading' },
+            { id: 'temp', name: 'الحرارة', icon: 'fa-temperature-half' },
+            { id: 'checklists', name: 'قوائم التحقق', icon: 'fa-list-check' },
+            { id: 'calibration', name: 'المعايرة', icon: 'fa-wrench' },
+            { id: 'health', name: 'الشهادات', icon: 'fa-id-card' },
+            { id: 'pest', name: 'الآفات', icon: 'fa-bug' },
+            { id: 'training', name: 'التدريب', icon: 'fa-graduation-cap' },
+            { id: 'complaints', name: 'الشكاوى', icon: 'fa-headset' },
+            { id: 'archive', name: 'الأرشيف', icon: 'fa-box-archive' },
+            { id: 'users', name: 'المستخدمين', icon: 'fa-users-gear' }
+        ];
+
+        let html = '';
+        navItems.forEach(item => {
+            if (this.canAccess(item.id)) {
+                html += `
+                    <div class="nav-item flex items-center gap-4 cursor-pointer px-6 py-4 rounded-2xl transition-all hover:bg-slate-800 group" data-route="${item.id}">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid ${item.icon} text-xs"></i>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">${item.name}</span>
+                    </div>
+                `;
+            }
+        });
+
+        $('#nav-menu').html(html);
+        
+        // Setup click events
+        $('.nav-item').on('click', (e) => {
+            const route = $(e.currentTarget).data('route');
+            router.navigateTo(route);
+            if (window.innerWidth <= 1024) {
+                this.toggleMobileSidebar();
+            }
+        });
+    }
+
+    canAccess(featureId) {
+        const user = stateManager.getState().currentUser;
+        if (!user) return false;
+
+        if (user.role === 'Admin') return true;
+
+        const permissions = user.permissions ? user.permissions.split(',') : [];
+        
+        // Define feature-permission mapping
+        const featurePermissions = {
+            'dashboard': ['view_dashboard'],
+            'procedures': ['view_procedures', 'manage_procedures'],
+            'audit': ['view_audit', 'manage_audit'],
+            'stock': ['view_stock', 'manage_stock'],
+            'receiving': ['view_receiving', 'manage_receiving'],
+            'temp': ['view_temp', 'manage_temp'],
+            'checklists': ['view_checklists', 'manage_checklists'],
+            'calibration': ['view_calibration', 'manage_calibration'],
+            'health': ['view_health', 'manage_health'],
+            'pest': ['view_pest', 'manage_pest'],
+            'training': ['view_training', 'manage_training'],
+            'complaints': ['view_complaints', 'manage_complaints'],
+            'archive': ['view_archive'],
+            'users': ['manage_users']
+        };
+
+        const requiredPermissions = featurePermissions[featureId];
+        if (!requiredPermissions) return false; // Feature not defined or no specific permissions
+
+        return requiredPermissions.some(rp => permissions.includes(rp));
+    }
+
+    toggleMobileSidebar() {
+        $('#sidebar').toggleClass('-translate-x-full');
+        $('#full-screen-blocker').toggleClass('hidden');
     }
 
     async generateProceduresReport(dateFrom, dateTo, reportName) {

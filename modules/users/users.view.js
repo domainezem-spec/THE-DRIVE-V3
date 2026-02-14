@@ -99,17 +99,17 @@ export const UsersView = (usersList) => {
  */
 export const UserFormTemplate = (userData = null) => {
     const modules = [
-        { id: 'dashboard', name: 'لوحة المتابعة' },
-        { id: 'audit', name: 'عمليات التفتيش' },
-        { id: 'stock', name: 'صلاحية المخزون' },
-        { id: 'receiving', name: 'سجل الاستلام' },
-        { id: 'temp', name: 'سجل الحرارة' },
-        { id: 'checklists', name: 'قوائم التحقق' },
-        { id: 'calibration', name: 'المعايرة' },
-        { id: 'health', name: 'الشهادات الصحية' },
-        { id: 'pest', name: 'مكافحة الآفات' },
-        { id: 'training', name: 'سجل التدريب' },
-        { id: 'complaints', name: 'شكاوى العملاء' }
+        { id: 'dashboard', name: 'لوحة المتابعة', icon: 'fa-chart-pie' },
+        { id: 'audit', name: 'عمليات التفتيش', icon: 'fa-clipboard-check' },
+        { id: 'stock', name: 'صلاحية المخزون', icon: 'fa-box-open' },
+        { id: 'receiving', name: 'سجل الاستلام', icon: 'fa-truck-loading' },
+        { id: 'temp', name: 'سجل الحرارة', icon: 'fa-temperature-half' },
+        { id: 'checklists', name: 'قوائم التحقق', icon: 'fa-list-check' },
+        { id: 'calibration', name: 'المعايرة', icon: 'fa-wrench' },
+        { id: 'health', name: 'الشهادات الصحية', icon: 'fa-id-card' },
+        { id: 'pest', name: 'مكافحة الآفات', icon: 'fa-bug' },
+        { id: 'training', name: 'سجل التدريب', icon: 'fa-graduation-cap' },
+        { id: 'complaints', name: 'شكاوى العملاء', icon: 'fa-headset' }
     ];
 
     const userPerms = typeof userData?.permissions === 'string' 
@@ -120,19 +120,19 @@ export const UserFormTemplate = (userData = null) => {
         <form id="userForm" class="space-y-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-group flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">الاسم بالكامل</label>
+                    <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase tracking-widest">الاسم بالكامل</label>
                     <input type="text" name="fullName" value="${userData?.fullName || ''}" placeholder="Eslam Azeem" class="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 text-sm font-semibold outline-none focus:border-indigo-500 transition-all" required>
                 </div>
                 <div class="form-group flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">البريد الإلكتروني</label>
+                    <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase tracking-widest">البريد الإلكتروني</label>
                     <input type="email" name="email" value="${userData?.email || ''}" ${userData ? 'readonly style="opacity:0.6"' : ''} placeholder="admin@system.com" class="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 text-sm font-semibold outline-none focus:border-indigo-500 transition-all" required>
                 </div>
                 <div class="form-group flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">كلمة المرور</label>
+                    <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase tracking-widest">كلمة المرور</label>
                     <input type="password" name="password" placeholder="${userData ? '********' : '••••••••'}" class="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 text-sm font-semibold outline-none focus:border-indigo-500 transition-all" ${userData ? '' : 'required'}>
                 </div>
                 <div class="form-group flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-500 mr-2">الرتبة / الدور</label>
+                    <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase tracking-widest">الرتبة / الدور</label>
                     <select name="role" class="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 text-sm font-semibold outline-none focus:border-indigo-500 transition-all">
                         <option value="User" ${userData?.role === 'User' ? 'selected' : ''}>User (Staff)</option>
                         <option value="Admin" ${userData?.role === 'Admin' ? 'selected' : ''}>Admin (Power User)</option>
@@ -140,25 +140,43 @@ export const UserFormTemplate = (userData = null) => {
                 </div>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-6">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
                         <i class="fa-solid fa-lock-open text-xs"></i>
                     </div>
-                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">صلاحيات الوصول (Module Permissions)</h4>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-widest">صلاحيات الوصول المتقدمة (Permissions Control)</h4>
                 </div>
                 
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    ${modules.map(mod => `
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-white hover:border-indigo-200 transition-all group shadow-sm hover:shadow-md">
-                            <input type="checkbox" name="permissions" value="${mod.id}" ${userPerms.includes(mod.id) ? 'checked' : ''} class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-xs font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">${mod.name}</span>
-                        </label>
-                    `).join('')}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${modules.map(mod => {
+                        const hasView = userPerms.includes(`${mod.id}_v`) || userPerms.includes(mod.id);
+                        const hasEdit = userPerms.includes(`${mod.id}_e`);
+                        return `
+                            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:border-indigo-200 transition-all group shadow-sm">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                        <i class="fa-solid ${mod.icon} text-xs"></i>
+                                    </div>
+                                    <span class="text-xs font-black text-slate-700">${mod.name}</span>
+                                </div>
+                                <div class="flex gap-4 border-t border-slate-100 pt-3">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="permissions" value="${mod.id}_v" ${hasView ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">عرض</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="permissions" value="${mod.id}_e" ${hasEdit ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">تعديل</span>
+                                    </label>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-slate-900 text-white rounded-2xl py-5 font-bold mt-4 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 tracking-wide">حفظ بيانات المستخدم</button>
+            <button type="submit" class="w-full bg-slate-900 text-white rounded-2xl py-6 font-black mt-4 hover:bg-slate-800 transition-all shadow-2xl shadow-indigo-200 tracking-wide uppercase">حفظ وتحديث الصلاحيات</button>
         </form>
     `;
 };

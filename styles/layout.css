@@ -346,3 +346,79 @@ table.dataTable tbody td {
         margin: 1.5cm;
     }
 }
+
+/* --- SLIM DESIGN SYSTEM (Mobile Optimization) --- */
+@media (max-width: 768px) {
+    :root {
+        --border-radius-lg: 24px;
+        --border-radius-md: 14px;
+    }
+
+    main {
+        padding: 16px !important;
+    }
+
+    .glass-card {
+        padding: 16px !important;
+        border-radius: var(--border-radius-md) !important;
+    }
+
+    .stats-card {
+        padding: 20px !important;
+    }
+
+    h3 {
+        font-size: 1.5rem !important;
+    }
+
+    .sidebar-logo {
+        padding: 20px 16px !important;
+    }
+
+    /* Tighter Dashboard Grid for Slim Feel */
+    .grid {
+        gap: 12px !important;
+    }
+
+    /* Force Table responsiveness to be even more compact */
+    table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before {
+        top: 50% !important;
+        left: 5px !important;
+    }
+
+    /* Minimize header height for more content space */
+    header {
+        height: 60px !important;
+        padding: 0 16px !important;
+    }
+}
+
+/* --- MANDATORY FULLSCREEN BLOCKER --- */
+#fs-blocker {
+    background: radial-gradient(circle at center, #1e1b4b, #0f172a);
+    transition: opacity 0.5s ease;
+}
+
+#fs-blocker h2 {
+    text-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+}
+
+#start-app-fs {
+    box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+    70% { box-shadow: 0 0 0 20px rgba(79, 70, 229, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+/* Slim Sidebar Logic for Mobile */
+#sidebar.show-mobile {
+    transform: translateX(0) !important;
+}
+
+#sidebar .nav-item {
+    margin-bottom: 2px;
+}
