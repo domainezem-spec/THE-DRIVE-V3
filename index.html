@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality System | The Drive</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Quality">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+
+    <!-- Stylesheets -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- DataTables & jQuery Stuff -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles/layout.css">
+    <!-- <link rel="stylesheet" href="styles/auth.css"> -->
+    
+    <style>
+        body { font-family: 'Inter', 'Cairo', sans-serif; }
+        .admin-only { display: none; } /* Hidden by default */
+        #app-wrapper.is-admin .admin-only { display: block !important; }
+        #app-wrapper.is-admin div.admin-only { display: block !important; }
+        #app-wrapper.is-admin button.admin-only { display: flex !important; }
+        #app-wrapper.is-admin span.admin-only { display: inline-block !important; }
+
+        /* Auth Screen Embedded Styles (Fallback for MIME issues) */
+        #login-screen {
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .login-card input {
+            background: #f8fafc;
+            border: 1.5px solid #f1f5f9;
+        }
+        .login-card input:focus {
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- LOGIN SCREEN (Split Screen Design) -->
+    <div id="login-screen" class="fixed inset-0 z-[2000] flex bg-slate-900 overflow-hidden">
+        <!-- Left Side: Login Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white relative">
+            <div class="w-full max-w-sm">
+                <div class="text-right mb-10">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-xl shadow-indigo-500/20">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">THE DRIVE <span class="text-indigo-600">V3.2</span></h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Quality Management Intelligence</p>
+                </div>
+
+                <form id="login-form" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mr-2">Login Identifier</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute right-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                            <input type="text" id="login-email" class="w-full bg-slate-50 border border-slate-100 rounded-2xl pr-12 pl-6 py-4 text-sm font-semibold focus:border-indigo-500 outline-none transition-all" placeholder="اسم المستخدم" required>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mr-2">Secured Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute right-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                            <input type="password" id="login-password" class="w-full bg-slate-50 border border-slate-100 rounded-2xl pr-12 pl-6 py-4 text-sm font-semibold focus:border-indigo-500 outline-none transition-all" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white rounded-2xl py-5 font-bold text-sm shadow-xl hover:bg-slate-800 transition-all active:scale-95 group">
+                        <span>تسجيل الدخول للنظام</span>
+                        <i class="fa-solid fa-arrow-left-long mr-2 group-hover:-translate-x-2 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="mt-12 pt-8 border-t border-slate-50 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span id="user-name" class="text-sm font-bold text-slate-600"></span>
+                        <button id="logout-btn-login" class="bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-600 transition-all shadow-md hidden">تسجيل الخروج</button>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <div class="flex items-center gap-2">
+                            <span id="server-status-dot-login" class="w-2 h-2 rounded-full bg-slate-300"></span>
+                            <span id="server-status-text-login" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Server Checking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Footer Info -->
+            <div class="absolute bottom-10 right-12 left-12 flex justify-between items-center no-print">
+                 <span class="text-[8px] font-bold text-slate-300 uppercase tracking-[0.3em]">Quality System Architecture © 2026</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Decorative Image Panel -->
+        <div class="hidden lg:block lg:w-1/2 bg-slate-900 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-40 bg-cover bg-center transition-transform hover:scale-105 duration-1000" 
+                 style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx4D3vGLkJVJbZ6NKwi86NhDZXgdkj_1AjfQ&s');">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-indigo-900/20"></div>
+            
+            <!-- Floating Data Info -->
+            <div class="absolute bottom-20 left-20 right-20 text-white">
+                <div class="w-12 h-1 bg-indigo-500 mb-6"></div>
+                <h2 class="text-5xl font-black mb-4 leading-tight">التحكم الذكي<br>في معايير الجودة</h2>
+                <p class="text-slate-400 text-lg font-bold leading-relaxed">نظام متكامل لإدارة العمليات، الرقابة على المخزون، وتوثيق إجراءات السلامة الغذائية بأعلى المعايير العالمية.</p>
+                
+                <div class="mt-10 grid grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-3xl font-black text-white">100%</p>
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">تغطية شاملة</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-black text-white">Cloud</p>
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">مزامنة سحابية</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-wrapper" class="hidden">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside id="sidebar" class="no-print">
+            <div class="sidebar-logo">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-lg shadow-lg">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h2 class="text-xl font-bold tracking-tight leading-none">THE DRIVE</h2>
+                        <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Quality Engine</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-label text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-4 mt-2">Main Controls</div>
+                <div class="nav-item active-nav" data-route="dashboard">
+                    <i class="fa-solid fa-house-chimney-window"></i> <span class="nav-text">لوحة المتابعة</span>
+                </div>
+                <div class="nav-item" data-route="audit">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> <span class="nav-text">عمليات التفتيش</span>
+                </div>
+                <div class="nav-item" data-route="stock">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span class="nav-text">صلاحية المخزون</span>
+                </div>
+                <div class="nav-item" data-route="receiving">
+                    <i class="fa-solid fa-truck-ramp-box"></i> <span class="nav-text">سجل الاستلام</span>
+                </div>
+                <div class="nav-item" data-route="temp">
+                    <i class="fa-solid fa-temperature-arrow-up"></i> <span class="nav-text">سجل الحرارة</span>
+                </div>
+                <div class="nav-item" data-route="procedures">
+                    <i class="fa-solid fa-list-check"></i> <span class="nav-text">إجراءات الفتح/الغلق</span>
+                </div>
+                
+                <div class="nav-label text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-4 mt-6">Compliance</div>
+                <div class="nav-item" data-route="checklists">
+                    <i class="fa-solid fa-clipboard-check"></i> <span class="nav-text">قوائم التحقق</span>
+                </div>
+                <div class="nav-item" data-route="calibration">
+                    <i class="fa-solid fa-microscope"></i> <span class="nav-text">المعايرة</span>
+                </div>
+                <div class="nav-item" data-route="health">
+                    <i class="fa-solid fa-address-card"></i> <span class="nav-text">الشهادات الصحية</span>
+                </div>
+                <div class="nav-item" data-route="pest">
+                    <i class="fa-solid fa-bug-slash"></i> <span class="nav-text">مكافحة الآفات</span>
+                </div>
+                
+                <div class="nav-label text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-4 mt-6">Knowledge</div>
+                <div class="nav-item" data-route="training">
+                    <i class="fa-solid fa-chalkboard-user"></i> <span class="nav-text">سجل التدريب</span>
+                </div>
+                <div class="nav-item" data-route="complaints">
+                    <i class="fa-solid fa-handshake-angle"></i> <span class="nav-text">شكاوى العملاء</span>
+                </div>
+                <div class="nav-item" data-route="products">
+                    <i class="fa-solid fa-layer-group"></i> <span class="nav-text">قاعدة الأصناف</span>
+                </div>
+                <div class="nav-item" data-route="archive">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-text">الأرشيف السحابي</span>
+                </div>
+
+                <div class="admin-only section-admin">
+                    <div class="nav-label text-[10px] font-bold text-indigo-400 uppercase tracking-widest px-4 mb-4 mt-6">Master Admin</div>
+                    <div class="nav-item !text-indigo-200 hover:!bg-indigo-500/10" data-route="users">
+                        <i class="fa-solid fa-id-badge"></i> <span class="nav-text">إدارة المستخدمين</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="p-6 border-t border-white/5">
+                <button id="logout-btn" class="w-full flex items-center justify-between text-slate-400 hover:text-white transition-colors group">
+                    <span class="nav-text text-xs font-bold uppercase tracking-widest">تسجيل الخروج</span>
+                    <i class="fa-solid fa-power-off group-hover:rotate-12 transition-transform"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main id="main-content">
+            
+            <!-- TOP HEADER -->
+            <header class="no-print">
+                <div class="flex items-center gap-6">
+                    <button id="sidebar-toggle" class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                    <div class="flex items-center gap-4">
+                        <p id="liveClock" class="text-xs font-bold text-slate-400 tracking-tight"></p>
+                        <div class="flex items-center gap-3 border-r border-slate-100 pr-6 ml-2 no-print">
+                            <span id="server-status-dot-app" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                            <span id="server-status-text-app" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <!-- Notification Bell -->
+                    <div class="relative no-print">
+                        <button id="notification-bell" class="relative w-11 h-11 bg-slate-50 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-2xl flex items-center justify-center transition-all group shadow-sm">
+                            <i class="fa-solid fa-bell"></i>
+                            <span id="notification-badge" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center hidden">0</span>
+                        </button>
+                        
+                        <!-- Notification Dropdown -->
+                        <div id="notification-dropdown" class="hidden absolute left-0 mt-3 w-80 bg-white rounded-[24px] shadow-2xl border border-slate-100 z-50 overflow-hidden transform origin-top-left transition-all duration-300">
+                            <div class="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                                <h3 class="font-bold text-slate-800">التنبيهات</h3>
+                                <button id="mark-all-read-header" class="text-[10px] text-indigo-600 hover:text-indigo-700 font-bold uppercase tracking-widest">إخفاء الكل</button>
+                            </div>
+                            <div id="notification-list" class="divide-y divide-slate-50 max-h-80 overflow-y-auto custom-scrollbar">
+                                <div class="p-6 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">
+                                    لا توجد تنبيهات جديدة
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-slate-50 text-center bg-white">
+                                <button class="nav-item text-xs text-indigo-600 hover:text-indigo-700 font-bold" data-route="notifications">مركز التنبيهات الكامل</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-left hidden md:block">
+                        <p id="header-user-name" class="text-sm font-bold text-slate-800 leading-none mb-1">---</p>
+                        <p id="header-user-role" class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.2em]">---</p>
+                    </div>
+                    <img id="header-user-img" src="" class="w-11 h-11 rounded-[16px] object-cover border-2 border-white shadow-lg shadow-slate-200 cursor-pointer" onclick="router.navigateTo('users')">
+                </div>
+            </header>
+
+            <!-- ROUTER OUTLET -->
+            <div id="router-outlet">
+                <!-- Content injected here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL CONTAINER (Shared) -->
+    <div id="modal-container" class="fixed inset-0 z-[3000] hidden flex items-center justify-center p-4">
+        <div class="modal-backdrop absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+        <div class="modal-content relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden scale-95 opacity-0 transition-all duration-300">
+            <div id="modal-header" class="px-10 py-6 border-b border-slate-50 flex items-center justify-between bg-white">
+                <div>
+                    <h2 id="modal-title" class="text-2xl font-bold text-slate-800 tracking-tight">---</h2>
+                    <p id="modal-subtitle" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">System Action Window</p>
+                </div>
+                <button class="close-modal w-10 h-10 rounded-full hover:bg-slate-50 text-slate-400 transition-colors">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="p-10 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                <!-- Form injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINT STYLES BOX (Hidden for Reports) -->
+    <div id="print-header-template" class="hidden print:block">
+        <div class="flex justify-between items-center border-b-4 border-slate-900 pb-6 mb-8 rtl">
+            <div class="text-right">
+                <h1 class="text-4xl font-bold tracking-tight">THE DRIVE <span class="text-indigo-600">CONTROL</span></h1>
+                <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Quality Assurance Department</p>
+            </div>
+            <div class="text-center">
+                <h2 id="print-report-title" class="text-3xl font-bold border-b-2 border-slate-800 inline-block px-4 pb-1">تقرير النظام</h2>
+                <p id="print-report-date" class="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest"></p>
+            </div>
+            <div class="text-left font-bold text-sm">
+                <p>Authorized by:</p>
+                <p class="text-lg font-bold">Quality Control Board</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="app.js" type="module"></script>
+
+</body>
+</html>
